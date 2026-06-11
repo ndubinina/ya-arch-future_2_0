@@ -1,0 +1,51 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Future 2.0 - Container Diagram
+
+Person(patient, "Пациент")
+Person(operator, "Оператор")
+Person(analyst, "Аналитик данных")
+Person(data_engineer, "Инженер данных")
+
+System_Boundary(system, "Future 2.0 Platform") {
+  Container_Boundary(core, "Core service") {
+      Container(med, "ИИ сервисы", "Python", "Диагностика, рекомендации лечения")
+      Container(fin, "Финтех сервисы", "Java / Go", "Банковские продукты")
+  }
+  Container_Boundary(bus, "messaging") {
+      Container(event, "Event Streaming Platform", "Kafka", "Асинхронный обмен событиями")
+      Container(legacy_esb, "ESB (Legacy)", "Apache Camel", "Синхронные интеграции")
+  }
+  Container_Boundary(bigata, "Data") {
+
+      Container(lake, "Data Lakehouse", "S3 + Iceberg + Spark + Trino + DataHub", "Единое хранилище и аналитика")
+      Container(bi, "BI-система", "Apache Superset", "Self-service аналитика и отчёты")
+      Container(legacy_dwh, "DWH (Legacy)", "SQL Server 2008", "Устаревшее хранилище")
+
+  }
+  Container(acl, "Антикоррупционный слой (ACL)", "Spring Boot", "Трансформация legacy → modern data model")
+}
+
+System_Ext(ext_pharma, "Фармацевтические компании")
+System_Ext(ext_devices, "Производители мед. оборудования")
+
+patient -> med : использует медицинские сервисы
+operator -> med : ведёт пациентов
+analyst -> bi : строит отчёты и анализирует данные
+data_engineer -> lake : создаёт и управляет ETL/ELT пайплайнами
+
+med -> event : публикует медицинские события
+fin -> event : публикует финансовые события
+
+event -> lake : потоковая загрузка данных
+
+lake -> bi : витрины данных/nагрегаты по доменам
+
+legacy_dwh -> acl : выгрузка исторических данных
+acl -> lake : выгрузка исторических данных
+
+legacy_esb -> med : временные синхронные интеграции
+legacy_esb -> fin : финансовые операции
+
+@enduml

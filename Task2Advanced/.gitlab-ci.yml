@@ -1,0 +1,42 @@
+stages:
+  - validate
+  - plan
+  - apply
+
+image: hashicorp/terraform:1.6
+
+before_script:
+  - export TF_VAR_cloud_id=$YC_CLOUD_ID
+  - export TF_VAR_folder_id=$YC_FOLDER_ID
+  - export TF_VAR_zone=$YC_ZONE
+  - echo "$YC_SERVICE_ACCOUNT_KEY" > key.json
+  - export YC_SERVICE_ACCOUNT_KEY_FILE=$CI_PROJECT_DIR/key.json
+
+validate:
+  stage: validate
+  script:
+    - cd terraform/envs/dev
+    - terraform init
+    - terraform validate
+  only:
+    - main
+
+plan:
+  stage: plan
+  script:
+    - cd terraform/envs/dev
+    - terraform init
+    - terraform plan -var-file=dev.tfvars
+  only:
+    - main
+
+apply:
+  stage: apply
+  script:
+    - cd terraform/envs/dev
+    - terraform init
+    - terraform apply -auto-approve -var-file=dev.tfvars
+  when: manual
+  allow_failure: false
+  only:
+    - main

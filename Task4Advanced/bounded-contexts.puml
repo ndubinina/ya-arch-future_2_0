@@ -1,0 +1,62 @@
+@startuml
+
+title Bounded Context Map
+
+package "Core Domains" {
+    component [Домен медицинских услуг] as Medical
+    component [Домен ИИ анализа] as AIDiagnostics
+}
+
+package "Supporting Domains" {
+    component [Финтех домен] as Finance
+    component [Домен интеграции с партнерами] as Partner
+}
+
+package "Generic Domains" {
+    component [Домен событий] as Integration
+    component [Домен хранилища данных] as DataPlatform
+}
+
+note bottom of Medical
+  **Поддомены:**
+  * Пациенты
+  * Визиты
+  * Назначения
+end note
+
+note bottom of AIDiagnostics
+  **Поддомены:**
+  * Исследования
+  * Диагностика
+end note
+
+note bottom of Finance
+  **Поддомены:**
+  * Кредиты
+  * Счета
+  * Платежи
+end note
+
+note bottom of DataPlatform
+  **Поддомены:**
+  * Витрины данных
+  * Аналитические агрегаты
+end note
+
+Medical .down.> AIDiagnostics : Передает медицинские данные
+AIDiagnostics .up.> Medical : Возвращает результаты ИИ
+
+Medical -right-> Finance : Публикует события оказания услуг
+Finance -left-> Medical : Оплата услуг
+
+Partner .down.> Medical : Предоставляет данные фармы и оборудования
+Partner .down.> AIDiagnostics : Предоставляет данные для обучения
+
+Medical .down.> Integration : Медицинские события
+AIDiagnostics .down.> Integration : Диагностические события
+Finance .down.> Integration : Финансовые события
+Partner .down.> Integration : События от партнеров
+
+Integration .down.> DataPlatform : События для Lakehouse
+
+@enduml

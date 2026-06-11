@@ -1,0 +1,42 @@
+@startuml
+title Future 2.0 - Event Storming
+
+skinparam rectangle {
+  RoundCorner 15
+}
+
+package "Домен медицинских услуг" {
+  [Пациент зарегестрирован] as PatientRegistered
+  [Назначен визит] as AppointmentScheduled
+  [Медицинские данные обновлены] as MedicalRecordUpdated
+  [Запрошена диагностика ИИ] as AIDiagnosticRequested
+}
+
+package "Домен ИИ анализа" {
+  [Диагностика сгенерирована] as AIDiagnosisGenerated
+}
+
+package "Финтех домен" {
+  [Создана заявка на кредит] as CreditApplicationCreated
+  [Одобрен кредит] as CreditApproved
+  [Платеж произведен] as PaymentProcessed
+}
+
+package "Домен хранилища данных" {
+  [Данные прошли обработку] as EventIngested
+}
+
+PatientRegistered --> AppointmentScheduled
+AppointmentScheduled --> AIDiagnosticRequested
+AIDiagnosticRequested --> AIModelExecuted
+AIModelExecuted --> AIDiagnosisGenerated
+
+CreditApplicationCreated --> CreditApproved
+CreditApproved --> PaymentProcessed
+
+PatientRegistered --> EventIngested
+MedicalRecordUpdated --> EventIngested
+AIDiagnosisGenerated --> EventIngested
+PaymentProcessed --> EventIngested
+
+@enduml
