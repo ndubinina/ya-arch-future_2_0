@@ -1,0 +1,56 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Future 2.0 - Data Lakehouse Component Diagram
+
+Person(data_engineer, "Инженер данных")
+Person(analyst, "Аналитик данных")
+Person(compliance, "Служба безопасности")
+
+System_Boundary(lakehouse, "Data Lakehouse Platform") {
+
+  Component(api, "API приёма данных", "Kafka Connect", "Приём потоковых и пакетных данных")
+
+  Component(stream_events, "Потоковая обработка", "Kafka Streams / Flink", "Обработка событий в near-real-time")
+
+  Component(batch_events, "Пакетная обработка", "Spark Jobs", "Загрузка исторических и batch данных")
+
+  Component(storage_raw, "Raw Zone (сырые данные)", "S3", "Неизменяемое хранилище исходных данных")
+
+  Component(storage_curated, "Curated Zone (обработанные данные)", "Iceberg Tables", "Нормализованные и агрегированные данные")
+
+  Component(query_engine, "Аналитический движок", "Trino", "SQL-доступ к данным")
+
+  Component(metadata, "Каталог данных и lineage", "DataHub", "Метаданные и происхождение данных")
+
+  Component(security, "Контроль доступа", "IAM / Trino Security", "Политики доступа ABAC + RLS на уровне данных и запросов")
+}
+
+System_Ext(med, "Медицинский домен")
+System_Ext(fin, "Финтех домен")
+System_Ext(legacy, "Legacy системы через ACL")
+
+med -> api : медицинские события
+fin -> api : финансовые события
+legacy -> api : исторические данные
+
+api -> stream_events : потоковая обработка
+api -> batch_events : пакетная загрузка
+
+stream_events -> storage_raw : запись событий
+batch_events -> storage_raw : загрузка данных
+
+stream_events -> storage_curated : трансформация потоков
+batch_events -> storage_curated : трансформация batch
+
+storage_curated -> query_engine : аналитические запросы
+
+analyst -> query_engine : запросы и отчёты
+
+query_engine -> metadata : использует метаданные и lineage
+security -> query_engine : контроль доступа (RLS / ABAC)
+
+compliance -> security : аудит и настройка политик
+compliance -> metadata : проверка lineage и происхождения данных
+
+@enduml
